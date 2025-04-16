@@ -73,4 +73,10 @@ button {
 #bookText p {
   margin: 6px 0;
 }
+.lyrics p {
+  text-align: center;
+  font-style: italic;
+  margin: 4px 0;
+  white-space: pre-line;
+}
 
