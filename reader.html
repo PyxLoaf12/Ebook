@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+  <button onclick="saveBookmark()">🔖 Bookmark This Spot</button>
+  <button onclick="goToBookmark()">📍 Go to Bookmark</button>
+  <head>
+    <title>eBook Reader</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <h1>📖 Now Reading</h1>
+
+    <!-- 📑 Chapter Dropdown -->
+    <div id="chapterNav">
+      <label for="chapterSelect">Jump to Chapter:</label>
+      <select id="chapterSelect" onchange="goToChapter(this.value)">
+        <option value="">-- Select --</option>
+      </select>
+    </div>
+
+    <!-- 📖 Book Text Area -->
+    <div id="bookText">Loading book...</div>
+
+    <!-- 🔧 Controls -->
+    <div id="controls">
+      <button onclick="scrollToTop()">⬆️ Top</button>
+      <button onclick="scrollToBottom()">⬇️ Bottom</button>
+      <button onclick="increaseFont()">A+</button>
+      <button onclick="decreaseFont()">A−</button>
+    </div>
+
+    <!-- 🔙 Back to Library -->
+    <button onclick="location.href='index.html'">⬅ Back to Library</button>
+
+    <!-- 🧠 JavaScript -->
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const bookName = params.get("book");
+      const fileName = `${bookName}.txt`;
+      let chapterPositions = [];
+
+      fetch(fileName)
+        .then((response) => response.text())
+        .then((text) => {
+          const bookDiv = document.getElementById("bookText");
+          const lines = text.split("\n");
+          let contentHTML = "";
+          chapterPositions = [];
+
+          for (let i = 0; i < lines.length; i++) {
+            const current = lines[i].trim();
+            const next = lines[i + 1]?.trim() || "";
+
+            // Detect lines that are just numbers (1, 2, 3, etc.)
+            if (/^\d+$/.test(current)) {
+              const chapterId = `chapter-${chapterPositions.length}`;
+              const chapterTitle = `${current}. ${next}`;
+              chapterPositions.push({ id: chapterId, name: chapterTitle });
+
+              contentHTML += `<h2 id="${chapterId}">${chapterTitle}</h2>\n`;
+              i++; // Skip the title line (already used)
+            } else {
+              contentHTML += `<p>${current}</p>\n`;
+            }
+          }
+
+          bookDiv.innerHTML = contentHTML;
+          populateChapterDropdown();
+        })
+        .catch((error) => {
+          document.getElementById("bookText").textContent =
+            "❌ Could not load book.";
+          console.error("Fetch error:", error);
+        });
+
+      function populateChapterDropdown() {
+        const select = document.getElementById("chapterSelect");
+        chapterPositions.forEach((chapter) => {
+          const option = document.createElement("option");
+          option.value = chapter.id;
+          option.textContent = chapter.name;
+          select.appendChild(option);
+        });
+      }
+
+      function goToChapter(chapterId) {
+        if (chapterId) {
+          const target = document.getElementById(chapterId);
+          if (target) {
+            target.scrollIntoView({ behavior: "smooth" });
+          }
+        }
+      }
+
+      function scrollToTop() {
+        document.getElementById("bookText").scrollTop = 0;
+      }
+
+      function scrollToBottom() {
+        const book = document.getElementById("bookText");
+        book.scrollTop = book.scrollHeight;
+      }
+
+      let currentFontSize = 20;
+
+      function increaseFont() {
+        currentFontSize += 2;
+        document.getElementById("bookText").style.fontSize =
+          currentFontSize + "px";
+      }
+
+      function decreaseFont() {
+        currentFontSize = Math.max(12, currentFontSize - 2);
+        document.getElementById("bookText").style.fontSize =
+          currentFontSize + "px";
+      }
+
+      // Save scroll position every 1 second
+      setInterval(() => {
+        const scrollTop = document.getElementById("bookText").scrollTop;
+        localStorage.setItem(`${bookName}-scroll`, scrollTop);
+      }, 1000);
+
+      // Restore saved scroll position when the book loads
+      window.addEventListener("load", () => {
+        const savedScroll = localStorage.getItem(`${bookName}-scroll`);
+        if (savedScroll) {
+          setTimeout(() => {
+            document.getElementById("bookText").scrollTop =
+              parseInt(savedScroll);
+          }, 300); // Delay to make sure content has rendered
+        }
+      });
+      function saveBookmark() {
+        const scrollTop = document.getElementById("bookText").scrollTop;
+        localStorage.setItem(`${bookName}-bookmark`, scrollTop);
+        alert("📌 Bookmark saved!");
+      }
+
+      function goToBookmark() {
+        const saved = localStorage.getItem(`${bookName}-bookmark`);
+        if (saved) {
+          document.getElementById("bookText").scrollTop = parseInt(saved);
+        } else {
+          alert("❌ No bookmark saved yet.");
+        }
+      }
+    </script>
+  </body>
+</html>
