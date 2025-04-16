@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html>
-  <button onclick="saveBookmark()">🔖 Bookmark This Spot</button>
-  <button onclick="goToBookmark()">📍 Go to Bookmark</button>
   <head>
     <title>eBook Reader</title>
     <link rel="stylesheet" href="style.css" />
   </head>
 
   <body>
+    <!-- 🔖 Bookmark Controls -->
+    <div id="bookmarks">
+      <button onclick="saveBookmark()">🔖 Bookmark This Spot</button>
+      <button onclick="goToBookmark()">📍 Go to Bookmark</button>
+    </div>
+
     <h1>📖 Now Reading</h1>
 
     <!-- 📑 Chapter Dropdown -->
@@ -58,8 +62,8 @@
               chapterPositions.push({ id: chapterId, name: chapterTitle });
 
               contentHTML += `<h2 id="${chapterId}">${chapterTitle}</h2>\n`;
-              i++; // Skip the title line (already used)
-            } else {
+              i++; // Skip the next line (title already added)
+            } else if (current !== "") {
               contentHTML += `<p>${current}</p>\n`;
             }
           }
@@ -128,9 +132,10 @@
           setTimeout(() => {
             document.getElementById("bookText").scrollTop =
               parseInt(savedScroll);
-          }, 300); // Delay to make sure content has rendered
+          }, 300);
         }
       });
+
       function saveBookmark() {
         const scrollTop = document.getElementById("bookText").scrollTop;
         localStorage.setItem(`${bookName}-bookmark`, scrollTop);
